@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Acompanhar pedido — ByteCare{% endblock %}
+{% block content %}
+<main class="track-page">
+  <section class="track-card" aria-labelledby="track-title">
+    <div class="eyebrow dark-eyebrow">ESTAMOS AQUI PRA AJUDAR <span class="eyebrow-line"></span></div>
+    <h1 id="track-title">Acompanhe seu <em>computador.</em></h1>
+    <p>Digite o código que recebeu ao solicitar seu atendimento.</p>
+    <form method="post" class="track-form">
+      <input name="code" placeholder="Ex.: A1B2C3" required maxlength="10" aria-label="Código do pedido" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <button class="button button-dark">Buscar pedido <span>→</span></button>
+    </form>
+
+    {% if order %}
+    <article class="tracked-order" aria-label="Detalhes do pedido {{ order.code }}">
+      <header class="tracked-top">
+        <div><small>CÓDIGO DO PEDIDO</small><strong>{{ order.code }}</strong></div>
+        <span class="status-pill">{{ order.status }}</span>
+      </header>
+      <div class="tracked-info-grid">
+        <div class="tracked-detail"><span>Serviços</span><b>{% for item in order['items']|default([], true) %}{{ item.quantity }}× {{ item.name }}{% if not loop.last %}, {% endif %}{% else %}{{ order.service.name }}{% endfor %}</b></div>
+        {% if order.computer_spec %}<div class="tracked-detail"><span>Computador</span><b>{{ order.computer_spec }}</b></div>{% endif %}
+        {% if order.existing_parts %}<div class="tracked-detail"><span>Peças que você já tem</span><b>{{ order.existing_parts|join(', ') }}</b></div>{% endif %}
+        <div class="tracked-detail"><span>Solicitado em</span><b>{{ order.created_at|date_br }}</b></div>
+        <div class="tracked-detail"><span>Forma de entrega</span><b>{% if order.fulfillment == 'pickup' %}Retirada no endereço{% else %}Entrega no ponto{% endif %}</b></div>
+      </div>
+      {% if order.parts %}
+      <div class="tracked-components"><b>Peças incluídas na montagem</b>{% for part in order.parts %}<div><span>{{ part.name }}</span><strong>{{ part.price|money }}</strong></div>{% endfor %}</div>
+      {% endif %}
+      <div class="tracked-total"><span>Total estimado</span><strong>{{ order.total|money }}</strong></div>
+{% if order.status == 'Cancelado' %}
+<div class="track-cancelled">Este pedido foi cancelado. Se tiver dúvidas, nossa equipe pode ajudar.</div>
+{% else %}
+{% set p = {'Recebido':0,'Em análise':1,'Aguardando aprovação':1,'Em manutenção':2,'Pronto':3,'Concluído':4}.get(order.status, 0) %}
+<div class="status-flow">
+  {% for label in ['Recebido','Em análise','Manutenção','Pronto'] %}
+    <div class="flow-node {% if loop.index0 <= p %}done{% endif %} {% if loop.index0 == p %}current{% endif %}" {% if loop.index0 == p %}aria-current="step"{% endif %}><i>{{ '✓' if loop.index0 < p else loop.index }}</i><span>{{ label }}</span></div>
+    {% if not loop.last %}<div class="flow-line {% if loop.index0 < p %}done{% endif %}"></div>{% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+    </article>
+    {% endif %}
+    <div class="track-help"><span>✳</span><span><b>Seu pedido está em boas mãos.</b><br>Precisa de ajuda? Nossa equipe entra em contato em breve.</span></div>
+  </section>
+  <div class="track-deco" aria-hidden="true"><div class="deco-circle">b<span>.</span></div><div class="deco-line"></div></div>
+</main>
+{% endblock %}

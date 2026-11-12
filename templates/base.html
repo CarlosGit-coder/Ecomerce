@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101810"><title>{% block title %}ByteCare — cuidado para seu computador{% endblock %}</title>
+  <meta name="description" content="Assistência, upgrades e montagem de computadores com acompanhamento online.">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+  <header class="site-header"><div class="nav-wrap">
+    <a class="brand" href="{{ url_for('storefront.home') }}"><span class="brand-mark">b<span>.</span></span><span>bytecare<small>assistência inteligente</small></span></a>
+    <form class="market-search" role="search" action="{{ url_for('storefront.home') }}#servicos"><input type="search" name="q" placeholder="Buscar serviços de informática" aria-label="Buscar serviços" value="{{ search|default('') }}"><button aria-label="Buscar">⌕</button></form>
+    <nav id="mainNav" aria-label="Principal"><a href="{{ url_for('storefront.home') }}#mais-pedidos">Mais pedidos</a><a href="{{ url_for('storefront.home') }}#servicos">Categorias</a><a href="{{ url_for('storefront.home') }}#como-funciona">Como funciona</a><a href="{{ url_for('orders.track_order') }}">Acompanhar pedido</a></nav>
+    <a class="nav-cta" href="{{ url_for('storefront.home') }}#servicos">Pedir serviço <span>↗</span></a>{% if request.endpoint == 'storefront.home' %}<button class="cart-launch" type="button" id="openCart">Carrinho <span id="cartCount">0</span></button>{% endif %}
+    <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="mainNav">☰</button>
+  </div></header>
+  <a id="conteudo" tabindex="-1"></a>
+  {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="flash-stack" role="status">{% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}{% endwith %}
+  {% block content %}{% endblock %}
+  <footer class="footer"><div class="footer-main"><a class="brand brand-light" href="{{ url_for('storefront.home') }}"><span class="brand-mark">b<span>.</span></span><span>bytecare<small>assistência inteligente</small></span></a><p>Seu computador bem cuidado.<br>Seu dia funcionando melhor.</p><div class="footer-links"><a href="{{ url_for('storefront.home') }}#servicos">Serviços</a><a href="{{ url_for('orders.track_order') }}">Meus pedidos</a><a href="{{ url_for('admin.dashboard') }}">Área da equipe</a></div></div><div class="footer-bottom"><span>© 2026 ByteCare · Projeto acadêmico</span><span class="db-state"><i></i> {% if db_online %}Dados conectados ao MongoDB{% else %}MongoDB desconectado{% endif %}</span></div></footer>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body></html>

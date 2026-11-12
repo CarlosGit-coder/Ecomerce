@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block content %}
+{% macro service_card(service, tag='') %}
+<article class="service-card marketplace-card">
+  {% if service.imagem_url %}<div class="service-image"><img src="{{ service.imagem_url }}" alt="Imagem ilustrativa de {{ service.name }}" loading="lazy"></div>{% endif %}
+  <div class="card-top"><span class="service-icon" aria-hidden="true">{{ service.icon }}</span>{% if tag %}<span class="popular-tag">{{ tag }}</span>{% endif %}</div>
+  <span class="service-category">{{ service.category }}</span>
+  <h3><a href="{{ url_for('storefront.service_detail', sid=service._id) }}">{{ service.name }}</a></h3>
+  <p>{{ service.description }}</p>
+  <div class="card-meta"><span>◷ {{ service.duration }}</span><strong>{{ service.price|money }}</strong></div>
+  <button type="button" class="card-action add-to-cart" aria-label="Adicionar {{ service.name }} ao carrinho" data-id="{{ service._id }}" data-name="{{ service.name }}" data-price="{{ service.price }}" data-assembly="{{ 'true' if service.assembly else 'false' }}">Adicionar ao carrinho <span>+</span></button>
+</article>
+{% endmacro %}
+<main>
+
+<section class="hero"><div class="hero-grid"></div><div class="hero-inner">
+  <div class="hero-copy">
+    <div class="eyebrow"><span class="pulse"></span> ASSISTÊNCIA PARA PC E NOTEBOOK</div>
+    <h1>Seu computador<br>merece <em>atenção.</em></h1>
+    <p>Encontre assistência, upgrades e peças para seu computador. Compare opções e escolha como quer receber o atendimento.</p>
+    <div class="hero-actions">
+      <a class="button button-lime" href="#servicos">Explorar serviços <span>↓</span></a>
+      <a class="button button-ghost" href="{{ url_for('orders.track_order') }}">Acompanhar pedido</a>
+    </div>
+  </div>
+  <div class="hero-art" aria-hidden="true"><div class="hero-card">
+    <div class="hero-card-head"><div><small>CÓDIGO DO PEDIDO</small><strong>A1B2C3</strong></div><span class="status-pill">Em manutenção</span></div>
+    <div class="hero-steps">
+      <div class="done"><i>✓</i>Recebido</div>
+      <div class="done"><i>✓</i>Em análise</div>
+      <div class="now"><i>3</i>Em manutenção</div>
+      <div><i>4</i>Pronto</div>
+    </div>
+    <div class="hero-card-foot">Exemplo ilustrativo de acompanhamento</div>
+  </div></div>
+</div></section>
+
+<section class="trust-strip"><div><b>01</b><span><strong>Orçamento claro</strong><small>Sem surpresas no caminho</small></span></div><div><b>02</b><span><strong>Você escolhe</strong><small>Entrega ou retirada no seu endereço</small></span></div><div><b>03</b><span><strong>Acompanhamento</strong><small>Saiba em que etapa está seu pedido</small></span></div><div><b>04</b><span><strong>Equipe especializada</strong><small>Cuidado técnico e próximo</small></span></div></section>
+
+{% if recently_viewed %}<section class="recent-section section-wrap"><div class="section-heading"><div><div class="eyebrow dark-eyebrow">VOCÊ VIU POR AQUI <span class="eyebrow-line"></span></div><h2>Visualizados <em>recentemente.</em></h2></div></div><div class="service-grid">{% for service in recently_viewed %}{{ service_card(service, "Visto recentemente") }}{% endfor %}</div></section>{% endif %}
+
+{% if db_online and popular %}<section class="popular-section section-wrap" id="mais-pedidos"><div class="section-heading"><div><div class="eyebrow dark-eyebrow">OS FAVORITOS DA GALERA <span class="eyebrow-line"></span></div><h2>Mais pedidos <em>por aqui.</em></h2></div><p>Os serviços mais escolhidos pelos clientes ByteCare. A lista ganha vida conforme novos pedidos chegam.</p></div>
+<div class="service-grid">{% for service in popular %}{% set n = service._order_count %}
+  {{ service_card(service, (n ~ (' pedido' if n == 1 else ' pedidos')) if n else 'Recomendado') }}
+{% endfor %}</div></section>{% endif %}
+
+<section class="services-section section-wrap" id="servicos"><div class="section-heading"><div><div class="eyebrow dark-eyebrow">NOSSO MENU DE CUIDADOS <span class="eyebrow-line"></span></div><h2>Encontre o serviço<br><em>ideal pra você.</em></h2></div><p>Busque pelo que precisa ou explore nossas categorias. Comece pelo diagnóstico se ainda não souber a causa do problema.</p></div>
+
+<form class="filters" method="get" action="{{ url_for('storefront.home') }}#servicos">
+  <label class="search-field"><span aria-hidden="true">⌕</span><input type="search" name="q" value="{{ search }}" placeholder="Buscar assistência, upgrade, limpeza..." aria-label="Buscar serviços"></label>
+  {% if selected_category %}<input type="hidden" name="categoria" value="{{ selected_category }}">{% endif %}
+  <button class="button button-dark" type="submit">Buscar <span>→</span></button>
+  {% if search or selected_category %}<a class="clear-filter" href="{{ url_for('storefront.home') }}#servicos">Limpar filtros</a>{% endif %}
+</form>
+<nav class="chips" aria-label="Filtrar por categoria">
+  <a class="chip {% if not selected_category %}active{% endif %}" href="{{ url_for('storefront.home', q=search or none) }}#servicos">Todos</a>
+  {% for category in categories %}<a class="chip {% if selected_category == category %}active{% endif %}" href="{{ url_for('storefront.home', q=search or none, categoria=category) }}#servicos">{{ category }}</a>{% endfor %}
+</nav>
+{% if db_online %}<p class="catalog-source"><span class="cache-indicator cache-{{ catalog_cache_status|lower }}">Redis {{ catalog_cache_status }}</span>{% if catalog_cache_status == "HIT" %} Catálogo servido pelo cache.{% elif catalog_cache_status == "MISS" %} Catálogo consultado no MongoDB e armazenado no cache.{% else %} Catálogo consultado diretamente no MongoDB.{% endif %}</p>{% endif %}
+
+{% if not db_online %}<div class="empty-state"><span>⌁</span><h3>Não foi possível conectar ao MongoDB Atlas</h3><p>A aplicação não conseguiu acessar o banco agora. Confira se o computador tem internet, se o IP está liberado em <strong>Atlas → Network Access</strong> e se o usuário e a senha do banco estão corretos em <code>MONGO_URI</code> no arquivo .env. Depois reinicie a aplicação.</p></div>
+{% elif services %}
+<p class="results-count">{{ services|length }} serviço{{ '' if services|length == 1 else 's' }} encontrado{{ '' if services|length == 1 else 's' }}</p>
+<div class="service-grid">{% for service in services %}{{ service_card(service, 'Destaque' if service.featured else '') }}{% endfor %}</div>
+{% else %}<div class="empty-state"><span>⌕</span><h3>Nenhum serviço encontrado</h3><p>Tente outro termo ou limpe os filtros.</p></div>{% endif %}</section>
+
+<section class="how-section" id="como-funciona"><div class="section-wrap"><div class="section-heading"><div><div class="eyebrow dark-eyebrow">SEM ADIVINHAÇÃO, SEM COMPLICAÇÃO <span class="eyebrow-line"></span></div><h2>Do seu jeito.<br><em>No seu tempo.</em></h2></div><p>Você acompanha tudo desde o primeiro clique até seu computador voltar pra rotina.</p></div><div class="steps"><article><span class="step-num">01</span><div class="step-icon">⌕</div><h3>Escolha seu cuidado</h3><p>Encontre o serviço que faz sentido. Na dúvida, nosso diagnóstico é um ótimo começo.</p></article><article><span class="step-num">02</span><div class="step-icon">⌖</div><h3>Defina como entregar</h3><p>Deixe seu equipamento no ponto de atendimento sem custo ou peça uma retirada no seu CEP.</p></article><article><span class="step-num">03</span><div class="step-icon">↗</div><h3>Acompanhe cada etapa</h3><p>Com seu código de pedido, veja o andamento do serviço quando quiser.</p></article></div></div></section>
+
+<section class="pickup-banner"><div><div class="eyebrow">A GENTE VAI ATÉ VOCÊ</div><h2>Sem tempo de sair?<br><em>A gente busca.</em></h2><p>Informe seu CEP e veja uma estimativa de retirada para sua região na hora de solicitar o serviço.</p><a class="button button-lime" href="#servicos">Ver serviços <span>→</span></a></div><div class="map-art"><div class="map-grid"></div><div class="map-pin">⌖<span></span></div><div class="map-path"></div><div class="map-label">VOCÊ ESTÁ AQUI</div><div class="map-sticker">retirada<br>na sua porta <b>↗</b></div></div></section>
+
+<section class="promise"><div class="promise-mark">“</div><p>Seu computador faz parte de tudo o que você faz.<br><em>Vamos cuidar dele como você cuida do seu dia.</em></p><span>— equipe bytecare</span></section>
+</main>
+
+<dialog id="orderDialog" class="order-dialog" aria-labelledby="orderTitle"><form id="orderForm"><div class="form-feedback" aria-live="polite"></div><button type="button" class="dialog-close" aria-label="Fechar">×</button>
+<div id="cartStep"><div class="eyebrow dark-eyebrow">SEU CARRINHO <span class="eyebrow-line"></span></div><h2 id="orderTitle">Seus serviços <em>escolhidos.</em></h2><p class="dialog-intro">Ajuste as quantidades e confirme os itens antes de informar a entrega.</p><div id="cartItems" class="cart-items"></div><div class="order-total"><span>Subtotal dos serviços</span><strong id="cartSubtotal">R$ 0,00</strong></div><button class="button button-dark submit-order" id="continueCheckout" type="button">Continuar <span>→</span></button></div>
+<div id="checkoutStep" hidden><button type="button" class="back-to-cart text-button">← Voltar ao carrinho</button><div class="eyebrow dark-eyebrow">ENTREGA E CONTATO <span class="eyebrow-line"></span></div><h2>Quase <em>pronto.</em></h2><p class="dialog-intro">Informe seus dados, o computador e como prefere fazer a entrega.</p>
+<section id="assemblyParts" class="part-picker" hidden><div class="part-picker-heading"><span>+</span><div><b>Peças para montagem</b><small>Adicione peças ao orçamento de qualquer serviço de montagem.</small></div></div><div class="part-search-row"><select id="assemblyCategory"><option value="">Todas as peças</option>{% for c in part_categories %}<option>{{ c }}</option>{% endfor %}</select><input id="assemblySearch" type="search" placeholder="Digite o nome da peça, ex.: Ryzen 5..."><div class="part-suggestions" id="assemblySuggestions"></div></div><div class="selected-parts" id="selectedParts"></div><div class="part-subtotal"><span>Peças selecionadas</span><strong id="partsTotal">R$ 0,00</strong></div></section>
+<div class="form-grid"><label>Seu nome<input name="name" required autocomplete="name" placeholder="Como podemos te chamar?"></label><label>E-mail<input type="email" name="email" required autocomplete="email" placeholder="voce@email.com"></label><label>Celular / WhatsApp<input type="tel" name="phone" required autocomplete="tel" inputmode="tel" placeholder="(00) 00000-0000"></label><label>CEP<input name="cep" id="cepInput" required autocomplete="postal-code" inputmode="numeric" maxlength="9" placeholder="00000-000"></label></div><div id="addressResult" class="address-result"></div>
+<div class="fulfillment-options"><label class="fulfillment-option"><input type="radio" name="fulfillment" value="dropoff" checked><span class="option-radio"></span><span><b>Eu levo até vocês</b><small>Sem custo · Ponto de atendimento</small></span><strong>Grátis</strong></label><label class="fulfillment-option"><input type="radio" name="fulfillment" value="pickup"><span class="option-radio"></span><span><b>Retirada no meu endereço</b><small>Estimativa calculada pela UF do CEP</small></span><strong id="pickupCost">Calcular</strong></label></div>
+<label class="notes-label">Modelo / peças do computador <small>(opcional)</small><input name="computer_spec" placeholder="Ex.: Lenovo IdeaPad 3, Ryzen 5, 16 GB RAM"></label>
+<details id="existingPartsBox" class="part-picker"><summary class="part-picker-heading"><span>+</span><div><b>Selecionar peças que já possui <i>(opcional)</i></b><small>Ajuda a equipe a entender a configuração atual.</small></div></summary><div class="part-search-row"><select id="existingCategory"><option value="">Todas as peças</option>{% for c in part_categories %}<option>{{ c }}</option>{% endfor %}</select><input id="existingSearch" type="search" placeholder="Busque uma peça que você já tem"><div class="part-suggestions" id="existingSuggestions"></div></div><div class="selected-parts existing-parts" id="existingParts"></div></details>
+<label class="notes-label">Observações <small>(opcional)</small><textarea name="notes" rows="3" placeholder="Conte um pouco sobre o problema ou serviço..."></textarea></label><div class="order-total"><span>Total estimado <small>Serviços + peças de montagem + coleta</small></span><strong id="orderTotal">—</strong></div><button class="button button-dark submit-order" type="submit">Comprar pelo WhatsApp <span>↗</span></button><p class="privacy-note">O pedido será salvo e o orçamento enviado pelo WhatsApp. Nenhum pagamento é realizado nesta etapa.</p></div></form></dialog>
+{% endblock %}

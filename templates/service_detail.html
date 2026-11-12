@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}{{ service.name }} — ByteCare{% endblock %}
+{% block content %}
+<main class="service-detail-page">
+  <a class="detail-back" href="{{ url_for('storefront.home') }}#servicos">← Voltar ao catálogo</a>
+  <article class="service-detail-card">
+    {% if service.imagem_url %}<img class="service-detail-image" src="{{ service.imagem_url }}" alt="Imagem ilustrativa de {{ service.name }}">{% endif %}
+    <div class="service-detail-copy"><span class="service-category">{{ service.category }}</span><h1>{{ service.name }}</h1><p>{{ service.description }}</p><div class="detail-meta"><span>Prazo estimado: {{ service.duration }}</span><strong>{{ service.price|money }}</strong></div><a class="button button-dark" href="{{ url_for('storefront.home', adicionar=service._id) }}">Adicionar ao carrinho <span>+</span></a></div>
+  </article>
+</main>
+{% endblock %}
