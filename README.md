@@ -296,4 +296,5 @@ O fluxo atual registra o pedido e abre o WhatsApp com a solicitação formatada.
 
 ## 🎬 Demonstração
 
-O projeto está preparado para apresentação local: catálogo, carrinho, criação e acompanhamento de pedidos, painel administrativo e persistência nos serviços de dados configurados.
+O projeto está preparado para apresentação local: catálogo, carrinho, criação e acompanhamento de pedidos, painel administrativo e persistência nos serviços de dados configurados.<br>
+Link do video de demonstração do codigo: https://drive.google.com/file/d/1enA7W9Frtygilp8IWGmY-DMa_-2Xw0qV/view?usp=sharing
